@@ -1,0 +1,416 @@
+<html>
+<head> 
+    <link rel="stylesheet" href="style.css">
+    <body> 
+         <div class="line">
+            <hr>
+             <div class="hline"></div><br>
+    <div class="heading"><b>Chapter 2. Preparing the MVS System</b></div><br><br>
+             <div class="pageset"> Follow these steps to prepare your MVS system if you are installing the NetView program: </div>    <ul>
+    <li>Use SMP/E to load the NetView V6.3 libraries.</li>
+    <li>Update the number of Language Processor (REXX) environments.</li>
+    <li>Update SYS1.PARMLIB members.</li>
+    <li>Modify the IEFUSI exit.</li>
+    <li>Review the attributes assigned to extended multiple console support (EMCS) consoles.</li>
+</ul>
+   <ul>
+    <li>The base NetView program including the following components:
+        <ul>
+            –Command facility<br>
+–Session monitor<br>
+–Status monitor<br>
+–Hardware monitor<br>
+–Automated Operations Network (AON)
+        </ul>
+    </li>
+    <li>NetView subsystem address space, which may include the program-to-program interface (PPI)</li>
+    <li>Event/Automation Service</li>
+    <li>Graphic Monitor Facility host subsystem (GMFHS)</li>
+    <li>Resource Object Data Manager (RODM)</li>
+    <li>Z NetView Enterprise Management Agent
+        <ul>
+    – The Z NetView Enterprise Management Agent is a separately orderable feature.<br>
+        </ul>
+    </li>
+</ul>
+             
+    <div class="pageset">This book guides you through the installation and configuration of base NetView and the NetView subsystem address application. 
+            
+      <img src="img1.png">          
+             </div><br>
+   <div class="heading"><b>Using SMP/E to Load the Libraries</b></div>
+              <div class="hline"></div><br>
+             <div class="pageset">Use the information in the NetView program directory to load the NetView libraries from the distribution media.</div><br> 
+     <div class="heading"><b>Modifying the Maximum Number of Language Processor (REXX) Environments for NetView</b></div>
+              <div class="hline"></div> <br> 
+    <div class="pageset">One of the most powerful features of the NetView program is the ability to run REXX code in the NetView environment. Many NetView components and base NetView functions exercise code that has been written in REXX. The NetView program also contains several parts that make use of the Data REXX function. Use the Data REXX function to include REXX instructions and functions in data files. To initialize the NetView program, you might need to adjust the maximum number of language processor environments defined by TSO that the system can initialize for the NetView address space. <br>
+             
+         <img src="img2.png">    
+             
+             
+             
+      </div>       
+    <div class="heading"><b>Updating SYS1.PARMLIB Members</b></div>
+              <div class="hline"></div><br>
+             <div class="pageset">  Review the following members in the SYS1.PARMLIB data set:</div>
+             <ul>
+        <li>“LPALSTxx” on page 10</li>
+        <li>“PROGxx” on page 11</li>
+        <li>“IEFSSNxx” on page 12</li>
+        <li>“IEASYSxx” on page 14</li>
+        <li>“IEASYMxx” on page 15</li>
+        <li>“IKJTSOxx” on page 16</li>
+        <li>“COUPLExx” on page 16</li>
+        <li>“SMFPRMxx” on page 17</li>
+    </ul>
+             <div class="pageset"> The xx that is used in the member names in this section corresponds with the xx specified in the IEASYSxx member of the SYS1.PARMLIB library.</div>
+             <h4>LPALSTxx</h4>
+        <div class="pageset">The LPALST member contains the names of program libraries you want the system to concatenate to SYS1.LPALIB. This concatenation is called the LPALST concatenation, which the system uses to build the pageable link pack area (PLPA).<br>
+Add the SCNMLPA1 NetView library to the LPALST member.<br>
+Data sets to be concatenated to the SYS1.LPALIB data set must be cataloged in the system master catalog or in a user catalog identified in the LPALST member. If the SCNMLPA1 target data set is not cataloged in the system master catalog but is cataloged in a user catalog, specify (in parenthesis immediately following the data set name) the 1- to 6-character VOLSER of the pack on which the SCNMLPA1 data set resides, for example:<br>
+In this case, the system verifies that the NETVIEW.V6R3M0.SCNMLPA1 data set has a user catalog entry pointing to the NVPTFM volume.<br><br>
+     
+            <img src="img3.png"> </div>      
+             
+      
+    <h4>PROGxx</h4> 
+             <div class="pageset">The PROGxx member contains the names of program libraries that you want the system to concatenate to the SYS1.LINKLIB data set and define as authorized with the Authorized Program Facility (APF). The PROGxx member can also add exit routines that are used by the NetView program to the MVS dynamic exits facility.</div> <br>
+             <div class="pageset"><b>Usage note: </b>Use PROGxx instead of using both LNKLSTxx (to concatenate program libraries to SYS1.LINKLIB) and IEAAPFxx (to authorize program libraries to APF).</div><br>
+             <div class="pageset"><b>LNKLST concatenation</b><br>If you are using LNKLST instead of a STEPLIB DD statement in any of your NetView JCL members (for example, your startup procedure), update your PROGxx member in the SYS1.PARMLIB data set to include the following program libraries as extensions to the SYS1.LINKLIB data set:</div>
+             <ul>
+  <li>NETVIEW.V6R3M0.SCNMMJPN (if the Japanese NetView program is being installed)</li>
+  <li>NETVIEW.V6R3M0.SAQNLINK</li>
+  <li>NETVIEW.V6R3M0.CNMLINK</li>
+  <li>NETVIEW.V6R3M0.SCNMLNKN</li>
+</ul>
+<b>Usage notes:</b><br>
+             <ol type="1">
+             <li>1.	If you installed the IBM Z NetView for Continuous Availability product, make sure that the modules in SAQNLINK library are loaded prior to those in the CNMLINK library.</li>
+             <li>2.	The SCNMLNKN data set is used for RODM trace, MVS command exit, and DSIPHONE (which is used by CMDSERV and by the UNIX, TSO command, and REST servers). The SCNMLNKN data set is not referenced in the NetView program samples; JCL for those samples must specify the SCNMLNKN data set on the STEPLIB DD statement if it is not included in the PROGxx member.
+</li></ol>
+             <b>APF authorization</b>
+        <div class="pageset">The following libraries must be authorized with the APF facility. To be authorized, a library name and volume ID must be in the list of authorized libraries in the PROGxx member of SYS1.PARMLIB.</div>     
+             <ol type="1">
+             <li>If these are not already authorized, authorize all the libraries from the //STEPLIB, //VTAMLIB, and //NCPLOAD concatenations in your VTAM start procedure. The VTAM start procedure, CNMSJ008 (CNMNET), in NETVIEW.V6R3M0.CNMSAMP is the default member shipped with the NetView program.</li>
+             <li>Authorize all the libraries from the //STEPLIB concatenation in the following procedures:</li>
+             <ul>
+    <li>NetView start procedure, CNMSJ009 (CNMPROC)</li>
+    <li>NetView procedure to start the subsystem interface (SSI) address space, CNMSJ010 (CNMPSSI)</li>
+    <li>RODM start procedure, EKGXRODM</li>
+    <li>GMFHS start procedure, CNMSJH10 (CNMGMFHS)</li>
+    <li>Event/Automation Service (E/AS) start procedure, IHSAEVNT</li>
+                 </ul>
+    These procedures are located in the NETVIEW.V6R3M0.CNMSAMP samples library.
+    <li>Authorize the following NetView libraries:</li> 
+                 <ul>
+  <li>NETVIEW.V6R3M0.SAQNLINK</li>
+  <li>NETVIEW.V6R3M0.SCNMLNK1</li>
+  <li>NETVIEW.V6R3M0.SCNMLPA1</li>
+  <li>NETVIEW.V6R3M0.CNMLINK</li>
+  <li>NETVIEW.V6R3M0.SCNMLNKN</li>
+</ul>
+    <li>If you are installing the NetView Japanese program, authorize the SCNMMJPN data set. This data set is listed in the //STEPLIB concatenation of CNMPROC.</li>   <hr>
+                 <li>Add the SEAGLPA data set (REXX/370 library) or the SEAGALT data set (REXX alternate library) to the list of APF-authorized libraries. For information about which data set to use, see the comments in the NetView start procedure, CNMPROC.</li>
+                 <li>If you plan to use the NetView agent, authorize the following additional libraries:</li>
+                <ul>
+                 <li>RKANMOD</li>
+                 <li>RKANMODL</li>
+                 <li>RKANMODU</li>
+                 <li>Any runtime libraries that are concatenated in the STEPLIB DDNAME and in the RKANMODL DDNAME of the IBMNA and IBMDS started tasks</li></ul> 
+            <li>If you plan to use the Web Services Gateway function, add the SIXMLOD1 runtime library (XML toolkit) to the list of APF-authorized libraries.</li>     
+             
+             </ol>
+             <div class="pageset"><b>Usage note:</b> If you specify an unauthorized library on a STEPLIB or concatenate unauthorized libraries with authorized libraries, all libraries are treated as if they are unauthorized.</div>
+             
+             <div class="pageset"> <b>Exit routines</b><br>Update the PROGxx member if you use the following exit routines:</div>
+             
+    <ol type="1">
+        <li>The MVS IEFACTRT SMF installation exit receives control from the system when a job or job step ends, either normally or abnormally. The NetView program provides an IEFACTRT sample exit (CNMSMF3E) that passes data across the PPI to a receiver which issues a message that can be automated using the NetView automation facilities. If you plan to use the CNMSMF3E sample as an IEFACTRT exit routine, associate the CNMSMF3E sample to the IEFACTRT exit by adding the following statement to your PROGxx member:<br>
+        <div class="bline">EXIT ADD EXITNAME(SYS.IEFACTRT) MODNAME(CNMSMF3E)</div>
+            More than one exit routine can be defined for the IEFACTRT exit, so there might be more than one EXIT statement for the SYS.IEFACTRT exit in your PROGxx member.
+        </li>  
+        <li>You can use the Canzlog log to view the system log messages that were issued before the NetView subsystem was initialized. To enable these preinitialization messages to be written to the Canzlog log, add this statement to the PROGxx member
+        <div class="bline">EXIT ADD EXITNAME(CNZ_MSGTOSYSLOG) MODNAME(DSI4LCUI)</div>
+            The preinitialization messages are logged with an ASTYPE value of E.
+          </li>
+              </ol>
+             <div class="pageset"><b>Note:</b> CNZ_MSGTOSYSLOG exit routines receive control only when SYSLOG is enabled as a hardcopy device. If SYSLOG is not enabled as a hardcopy device, such as if only OPERLOG is used, no preinitialization messages are written to the Canzlog log.
+
+
+             <img src="img4.png">
+             </div>
+    <h4>IEFSSNxx</h4> 
+             <div class="pageset">The IEFSSNxx member in the SYS1.PARMLIB data set contains parameters that define the secondary subsystems during MVS system initialization. Each SUBSYS statement in the IEFSSNxx member contains parameters that define a single subsystem.<br><br>
+             Add the names in Table 1 on page 13 to the IEFSSNxx member in the SYS1.PARMLIB data set.
+            <br>
+             
+            <table border="1px">
+    <tr>
+      <td colspan="3"><em>Table 1. Subsystem Names</em></td>
+      </tr>
+      <tr>
+      <th>Subsystem Name</th>
+          <th>Used by:</th>
+          <th>Procedures Name</th>
+      </tr>
+      <tr>
+      <td>CNMP</td>
+          <td>NetView subsystem (SSI)</td>
+          <td>CNMPSSI</td>
+      </tr>
+      <tr>
+      <td>EKGX</td>
+      <td>RODM subsystem</td>
+      <td>EKGXRODM</td>
+      </tr>
+    </table><br>
+             </div> 
+             <div class="pageset"><b>Usage notes:</b></div>
+             <ol type="1">
+             <li>The name of the subsystem for the NetView program is 4 characters and must be the first 4 characters of the procedure names that you use to start the following address spaces:
+             <ul>
+                 <li>NetView subsystem (sample CNMSJ010)</li>
+                 <li>NetView application (sample CNMSJ009)</li>
+                 </ul>
+                 For example, if both procedure names begin with CNMP, you can code the following entry in the IEFSSNxx member:
+             <div class="bline">SUBSYS SUBNAME(CNMP) INITRTN(DSI4LSIT)</div>
+                 Create one entry for each instance of the NetView program that you plan to start on this system. Make sure that you specify the INITRTN value (DSI4LSIT) for each entry.</li>
+                 <li>Any subsystem name that you define for the NetView program can be used only for the NetView program. If you choose a subsystem name that was previously used, restart MVS before using the subsystem name. If the NetView program is started as a job rather than as a task, the job name must have the same first four characters as the subsystem interface and startup procedure.</li>
+                 <li>Consider the following conditions before deciding where to place the NetView subsystem name in the IEFSSNxx member:</li>
+                 <ul>
+                 <li>If you place the NetView subsystem name after other subsystem names in the IEFSSNxx member, all MVS messages and commands received by the NetView subsystem are affected by the changes made by the other subsystems that are listed before the NetView subsystem.</li>
+                 <li>If you are defining more than one NetView subsystem (SSI) in the IEFSSNxx member, the first NetView subsystem must come before the BEGINPARALLEL keyword. Any remaining NetView subsystems can be defined following the BEGINPARALLEL keyword. If you are defining only one NetView subsystem, the NetView subsystem can be placed before or after the BEGINPARALLEL keyword in the IEFSSNxx member.</li>
+                 <li>By default, the NetView program does not send unsolicited foreign messages (those originating at another MVS LPAR in the same sysplex that are not specifically destined for an EMCS console owned by a NetView operator) to Canzlog. To have foreign messages eligible to be logged in Canzlog, specify the following parameter on the first SUBSYS statement that contains INITRTN(DSI4LSIT):</li></ul>
+                 <div class="bline">INITPARM('LOGFORN')</div>
+                 Note that the NetView subsystem initialization routine ignores any value specified on INITPARM on a SUBSYS statement containing INITRTN(DSI4LSIT) that is not the first such statement read by MVS.
+                 <li>The DSI4LSIT initialization routine allocates the CNMCANZ0 data space where MVS and NetView messages are stored. The data space wraps when it reaches its current usable size. CNMCANZ0 is the main Canzlog data space, and by default is allocated with a static data space size of 2 GB. If the data space is specified as dynamic, it will allocate 128 MB of storage and grow by 8 MB as necessary accommodate message processing until it reaches its maximum size.<br>
+                 To explicitly define the data space size to be a maximum of 2GB, specify the following value on the INITPARM parameter on the first SUBSYS statement that contains INITRTN(DSI4LSIT)
+                 <div class="bline">INITPARM('FULLDS')</div><hr>
+                 To restrict the data space size to a maximum of 512 MB, specify the following value on the INITPARM parameter on the first SUBSYS statement that contains INITRTN(DSI4LSIT):
+                 <div class="bline">INITPARM('TINYDS')</div>
+                 To explicitly define the data space size to be static, which means the entire data space storage will be used before wrapping occurs, specify the following value on the INITPARM parameter on the first SUBSYS statement that contains INITRTN(DSI4LSIT):
+                <div class="bline">INITPARM('STATIC')</div> 
+                 To explicitly define the data space size to be dynamic, which means only 128 MB of data space storage will be used before wrapping occurs, unless more space is needed to accommodate situations where logging of messages is much faster than automation of messages, specify the following value on the INITPARM parameter on the first SUBSYS statement that contains INITRTN(DSI4LSIT):
+                 <div class="bline">INITPARM('DYNAMIC')</div>
+                 Note that when DYNAMIC is used and Canzlog data is not being archived, the amount of messages that can be browsed is less than when the Canzlog data space is defined as STATIC.<br>
+The NetView subsystem initialization routine ignores any value specified on the INITPARM parameter on a SUBSYS statement that contains INITRTN(DSI4LSIT) that is not the first such statement read by MVS.<br>
+ Multiple values can be specified on the INITPARM parameter. For example, if the TINYDS, DYNAMIC, and LOGFORN values are required, specify these values on the same INITPARM parameter:
+                     <div class="bline">INITPARM('TINYDS,DYNAMIC,LOGFORN')</div>
+                     Separate the values with a comma.
+</li>
+ <li>If you do not add the NetView subsystem to the subsystem name table, you can dynamically add it before starting the NetView subsystem. For information on dynamically adding the subsystem name to the table, see “Starting the NetView Program Without Restarting the MVS System” on page 67.</li>
+             </ol>
+             <div class="pageset">
+             <img src="img5.png">
+             </div>
+<h4>IEASYSxx</h4> 
+             <div class="pageset">
+             The IEASYSxx member in the SYS1.PARMLIB data set contains system parameters.<br>
+If you are using the status monitor, system automation, or Automatic Restart Manager (ARM) support, update the MAXUSER and RSVNONR values using the following steps:
+                 <ul>
+  <li>For the status monitor, determine the number of times you expect to stop and restart the NetView program over the life of the MVS IPL.</li>
+  <li>For system automation, determine the number of times you expect to stop and restart the NetView subsystem interface (SSI) address space over the life of the MVS IPL.</li>
+  <li>If both the preceding sets of conditions apply, add the values together that you computed.</li>
+</ul>
+Increase the number of address spaces available to MVS by this value by changing the MAXUSER or RSVNONR value, or both:<hr>
+                 <ul>
+  <li>Set MAXUSER to the number of ASIDs you want available at any one time.</li>
+  <li>Set RSVNONR to the replacement values.</li>
+</ul>
+                 <b>Usage notes:</b>
+<ol type="1">
+    <li>The MVS program does not reuse any address space identifiers (ASIDs) that have established a program call interface. The NetView subsystem interface address space does reuse ASIDs that have established a program call interface. The RSVNONR value provides a way to specify replacement ASIDs for the ones lost.</li>
+    <li>The total of the values of MAXUSER, RSVNONR, and RSVSTRT, cannot exceed 32767. If you want a low MAXUSER value, be sure to provide a reasonably large value for RSVNONR.</li>
+                 
+                 </ol>                 
+
+</div>
+          <div class="pageset">  
+         <img src="img6.png">
+             </div> 
+        </div>
+        <h4>IEASYMxx</h4>
+         <div class="pageset">
+        Add a SYSDEF statement in member IEASYMxx to identify user-defined system symbolic variables for the NetView program, including the TCP/IP application name, RODM name, and network ID.<br><br>
+Setting these symbolic variables can alleviate modification of many of the NetView initialization members unless some default parameter such as a TCP/IP port needs to be changed.<br><br>
+For example, you can define the following symbolic variables (these are the default names used in the NetView program):
+             
+        <div class="bline">
+           SYSDEF SYMDEF(&CNMTCPN='tcpip_name') <br>SYSDEF SYMDEF(&CNMRODM='rodm_name')<br>
+SYSDEF SYMDEF(&CNMNETID='network_id') 
+        </div>
+        </div>
+        <div class="pageset"><b>Usage note:</b></div>
+        <div class="pageset">If you need to produce an actual ampersand (&) in the text of members that support symbolic substitution, one easy method is to define the ampersand as follows in your system substitution tables.
+        <div class="bline">
+            SYSDEF SYMDEF(&AMP.='&')</div></div>
+        <div class="pageset">
+        You can use the symbol &AMP. to specify an ampersand in this statement anywhere without risking an inadvertant symbol substitution.</div><br>
+        <div class="pageset">
+        The initialization members that use the symbolic variables are shown in this table.<br><br>
+        
+        <table border="1px">
+    <tr>
+      <td colspan="5"><em>Table 2. Symbolic Variable Usage by Initialization Members</em></td>
+      </tr>
+      <tr>
+          <th>Member</th>
+          <th>Task</th>
+          <th>TCP/IP NAME <br> &CNMTCPN</th>
+          <th>RODM NAME <br> &CNMRODM</th>
+          <th>NETID <br>&CNMNETID</th>
+      </tr>
+      <tr>
+      <td>CNMSTYLE</td>
+          <td>NetView initialization</td>
+          <td><center>X</center></td>
+          <td><center>X</center></td>
+          <td><center>X</center></td>
+      </tr>
+      <tr>
+      <td>DUIGINIT</td>
+      <td>GMFHS (Graphics)</td>
+      <td>&nbsp;</td>
+          <td><center>X</center></td>
+         <td>&nbsp;</td>
+      </tr>
+      <tr>
+      <td>FLBSYSD</td>
+          <td>SNA topology manager</td>
+          <td>&nbsp;</td>
+          <td><center>X</center></td>
+         <td>&nbsp;</td>
+      </tr>
+            </table>  </div>
+     <div class="pageset">
+        <b>Note:</b> After you run job CNMSJBUP (see “Creating the Installation JCL Samples Library Using Job CNMSJBUP” on page 21), you can use sample CNMSJM12 in data set NETVIEW.V6R3USER.INSTALL as an alternate method to do symbol substitution. CNMSJM12 replaces symbolic variables in NetView members.<br><br>
+If you do not define these symbolic variables in the IEASYMxx member, you can specify their values in the CNMSTYLE member. Additionally, you can use the CNMSJM12 sample to replace other symbolic variables that are used in your data set members.</div>   
+       <div class="pageset">
+        <b>Additional considerations:</b>
+        </div> 
+        <ol type="1">
+        <li>1.You can use the &CNMDOMN variable to define the NetView domain to applications outside of the main NetView address space. If you use the A01APPLS (CNMS0013) sample, you can use the &CNMDOMN variable to provide the NetView domain to VTAM. If you do not set this variable, replace all occurrences of the &CNMDOMN variable in the A01APPLS sample with the NetView domain. Within the NetView address space, use the &DOMAIN local symbolic variable to specify the NetView domain.</li>
+        <li>2.RODM looks for an optional EKGCUST DD statement in the jobstream. The EKGCUST statement names the input customization member. If you defined a customization member, RODM reads it. If not, RODM provides defaults. You can use symbols to represent operands, values, and comments on the EKGCUST statement, if symbolic substitution is enabled on your system. Ensure that these symbols are defined in the IEASYMxx member.</li>
+         <li>3.The SNA topology manager is shipped with an initialization file (FLBSYSD). In addition, the FLBOSIDS, FLBSRT, and FLBEXV files can be used to further customize SNA topology manager views. If symbolic substitution is enabled on your system, you can use symbols in these initialization and customization files. Ensure that the symbols are defined in the IEASYMxx member.</li>   
+            
+        </ol>
+        <div class="pageset">
+            <img src="img7.png"></div>
+        <h4>IKJTSOxx</h4>
+        <div class="pageset">
+        The IKJTSOxx member contains TSO/E settings, including command and program authorization information.<br><br>
+If you plan to use the NetView agent, add the KPDDSCO command in the authorized program (AUTHPGM) section:
+        <div class="bline">
+            AUTHPGM NAMES(KPDDSCO,pgm2,...)</div></div>
+        <div class="pageset">IBM Tivoli Monitoring components require the KPDDSCO command to be authorized in the IKJTSOxx member for persistent data store processing.<br>
+        <img src="img8.png"></div>
+        <h3>COUPLExx</h3>
+        <div class="pageset">The COUPLExx member contains cross-system coupling facility (XCF) parameters.
+Add the following DATA statement to identify the automatic restart manager (ARM) couple data to XCF:<br>
+        
+        <div class="bline">
+           DATA TYPE(ARM) PCOUPLE(primary-dsname) ACOUPLE(alternate-dsname)</div>
+        Initialize the primary and alternate ARM couple data sets after you create them.
+        </div>
+        <div class="pageset">
+        If you are adding this system to a sysplex to enable the NetView program to use XCF Services, see <em>z/OS MVS Setting Up a Sysplex</em> . 
+        <br><br>
+        <img src="img9.png">
+        </div>
+        <h3>SMFPRMxx</h3>
+        <div class="pageset">
+        To write the following records to the System Management Facility (SMF) log, ensure that member SMFPRMxx in the SYS1.PARMLIB data set is set up to collect type 37, type38, and type 39 SMF records accordingly:
+        </div>
+        <ul>
+    <li><b>SMF record type 37:</b> hardware monitor records</li>
+    <li><b>SMF record type 38:</b> authorization, task resource utilization, and command resource utilization records</li>
+    <li><b>SMF record type 38:</b> session monitor records</li>
+</ul>
+
+        
+        
+        <div class="pageset">
+        The SMF 38 subtype 4 record is written on an interval. Set the SMF interval value, and if desired, the SMF synchronization value.<br><br>
+If you plan to use the CNMSMF3E sample as an IEFACTRT exit routine, verify that type 30 SMF records are set up to be collected and that the EXITS operand of the SYS specification includes the IEFACTRT exit.<br><br>
+For example, the following statement causes SMF record types 0 through 255 to be collected and the IEFACTRT exit to be called:<br><br>
+        <div class="bline">
+        SYS(TYPE(0:255),EXITS(IEFU83,IEFU84,IEFU85,IEFACTRT,IEFUJV,IEFUSI, IEFUJP,IEFUSO,IEFUJI,IEFUTL,IEFU29,IEFUAV),NOINTERVAL,NODETAIL)</div>
+        <img src="img10.png">
+        </div><br><br>
+        <div class="heading"><b>Modifying the IEFUSI exit</b></div>
+              <div class="hline"></div><br>
+        <div class="pageset">
+        You can use the IEFUSI exit to limit the region size and region limit, and to limit the size of data spaces and hiperspaces for jobs started on an MVS system. If you have the IEFUSI exit on your system, modify it as needed to accommodate the region sizes for the various address spaces of the NetView program. See Table 3 on page 17 for a list of the data spaces that are created by NetView address spaces.<br><br>
+
+        
+         <table border="1px">
+    <tr>
+      <td colspan="2"><em>Table 3. Data spaces created by the NetView program</em></td>
+      </tr>
+      <tr>
+          <th>Address Space</th>
+          <th>Data Spaces Created</th>
+             </tr>
+        <tr>
+             <td>CONNSEC</td>
+            <td>TCP/IP connection security (CONNSEC) creates a data space for each TCP/IP stack on your system.</td>
+             </tr>
+        <tr>
+             <td>Master Scheduler</td>
+             <td>Subsystem initialization for the NetView program creates a data space to contain Canzlog data. This data space is, by default, defined with 2GB of virtual storage, which can significantly impact real and auxiliary storage requirements. For more information about defining this data space, see the subsection named "IEFSSNxx" in the section named "Updating SYS1.PARMLIB Members" in this chapter.<br><b>Warning:</b> Proper planning for real and auxiliary storage must be performed before enabling the Canzlog data space, as system slowdown and hangs can occur with insufficient storage.</td>
+             </tr>
+             <tr>
+             <td>NetView</td>
+             <td><ul>
+    <li>The NetView program creates an internal trace data space at initialization that is managed through the TRSIZE parameter in the CNMPROC startup procedure.</li>
+    <li>The Canzlog archiving function creates data spaces CNMCANZ1, CNMCANZ2, …, CNMCANZ9, CNMCANZA that are used for browsing archived Canzlog data. The number of data spaces that are created is limited by the specification on the ARCHIVE.BROWSE.DATASPACES or ARCHIVE.BROWSE.MAXDSPSIZE statement in the CNMSTYLE member. The data space(s) will be created as necessary to accommodate usage requirements, and their sizes can increase up to the defined limit.</li>
+    <li>TCP/IP connection management (TCPCONN) creates a data space for each TCP/IP stack on your system.</li>
+    <li>The IP packet trace (PKTS) function creates a data space for each TCP/IP stack on your system.</li>
+    <li>The OSA packet trace (OPKT) function creates a data space for each TCP/IP stack on your system.</li>
+    <li>If the DISCOVERY tower is enabled in the CNMSTYLE member, the real-time SMF data network management interface (SYSTCPSM) creates a data space for each TCP/IP stack on your system.</li>
+    <li>As of V6R3, if LOGSMF is enabled in the Command Statistics function, a data space is created to store Command Statistics data before being written into SMF. The size of the data space is specified by the CMDMON.INIT.SMFDSSIZE CNMSTYLE statement.</li>
+</ul>
+ </td>
+             </tr>
+             <tr>
+             <td>RODM</td>
+             <td>RODM creates and utilizes three data spaces. Note that RODM allocates a 2 gigabyte data space at initialization.</td>
+             </tr>
+             <tr>
+             <td>NetView agent</td>
+                 <td>
+                    <ul>
+                     <li>The NetView agent creates a data space for each NetView program with which it communicates.</li>
+                     <li>A second data space is created if the value of the NACMD.PERSIST statement in the CNMSTYLE member is greater than zero.</li>
+                     </ul></td>
+             </tr>
+              </table><br>
+        The IEFUSI exit is passed the address of the program name on input.<br>
+        <img src="img11.png">
+        
+        </div><br><br>
+        
+        <div class="heading"><b>Using EMCS Consoles within the NetView Program</b></div>
+              <div class="hline"></div><br>
+        <div class="pageset">
+        The NetView program uses extended multiple console support (EMCS) consoles for tasks that issue MVS system operator commands.<br><br>
+        EMCS consoles are dynamically defined. Any console names that you specify in the CONSOLxx member are not available for use as EMCS console names. Therefore, if you specify any console names in CONSOLxx, make sure that they are different from console names that you plan to use within the NetView program. For information on how to construct console names for use within the NetView program, see <u>“Assigning Unique EMCS Console Names” on page 55.</u><br><br>
+EMCS consoles can be assigned attributes. For more information about these attributes, see the <em>IBM Z NetView Security Reference.</em></div><br><br>
+        
+        <div class="heading"><b>Planning to Restart the Target System</b></div>
+              <div class="hline"></div><br>
+        <div class="pageset">
+        If your business policy and schedule allow it, restart the MVS system now to activate the changes. When restarting the MVS system, use the CLPA option, which enables the NetView program to access the new LPALIB members from NETVIEW.V6R3M0.SCNMLPA1.<br><br>
+If you cannot restart the MVS system at this time, you can manually activate the changes that are required to start the NetView program. For more information on manually activating the changes, see “Starting the NetView Program Without Restarting the MVS System” on page 67. Plan to restart the MVS system at a later time to activate all the changes that you made to the MVS system.<br><br>
+<b>Important:</b> If you are implementing a user-defined RACF® resource class and a user-defined RACF router table for RODM, you must restart MVS.<br><br>
+            <img src="img12.png">
+        </div>
+        
+        
+        
+        
+        
+        
+        
+        
+    </body></head>
